@@ -13864,24 +13864,7 @@ th {
     background-color: #272727
 }
 
-
-
-/*# sourceMappingURL=bootstrap.min.css.map */
-
-
-#nombreCliente {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    color: rgba(var(--bs-dark-rgb), var(--bs-bg-opacity)) !important
-}
-
-#mensajeBienvenida{
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    color: rgba(var(--bs-dark-rgb), var(--bs-bg-opacity)) !important;
-}
-#oculto {
+/* esconde elementos */
+.oculto {
     display: none;
 }

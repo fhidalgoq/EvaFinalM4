@@ -15,7 +15,7 @@
     <!-- Navbar responsivo-->
     <nav class="navbar navbar-expand-lg bg-dark">
         <div class="container px-5">
-            <a class="navbar-brand text-white" href="#!">Tecno Chile</a>
+            <a class="navbar-brand text-white" href="index.html">Tecno Chile</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
@@ -24,23 +24,33 @@
                     <li class="nav-item"><a class="nav-link active text-white" aria-current="page"
                             href="index.html">Inicio</a>
                     </li>
-                    <li class="nav-item"><a class="nav-link text-white" href="#!">Acerca de nosotros</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="#!">Productos Destacados</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="#!">Tienda</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="index.html#destacados">Productos
+                            Destacados</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="catalogo.html">Tienda</a></li>
+                    <li class="nav-item">
+                        <p class="nav-link text-white" id="mensajeBienvenida"></p>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
+    <!-- Sección cliente -->
+    <div class="oculto">
+        <span id="nombreCliente"></span>
+    </div>
+    <div class="oculto">
+        <p id="mensajeBienvenida"></p>
+    </div>
     <!-- Buscador-->
     <div class="container mt-4">
         <h2 class="text-center">Búsqueda de Productos</h2>
         <input type="text" name="" id="filtroProductos" class="form-control" placeholder="Buscar productos...">
         <!--catalogo-->
         <div class="container-fluid text-center catalogo my-5">
-        <div class="row row-cols-md-3 row-cols-lg-3 g-3" id="product-list">
-        <!-- Aquí se generarán los productos del catálogo -->
+            <div class="row row-cols-md-3 row-cols-lg-3 g-3" id="product-list">
+                <!-- Aquí se generarán los productos del catálogo -->
+            </div>
         </div>
-    </div>
     </div>
 
     <!--fin catalogo-->
@@ -50,9 +60,9 @@
     </div>
     <div class="container" id="cart-summary">
         <!-- Vaciar carrito -->
-    <div class="container mt-3">
-      <button class="btn btn-danger" onclick="clearCart()">Vaciar carrito</button>
-    </div>
+        <div class="container mt-3">
+            <button class="btn btn-danger" onclick="clearCart()">Vaciar carrito</button>
+        </div>
 
     </div>
     <!-- Formulario de despacho -->
@@ -116,6 +126,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- catalogo JS-->
     <script src="js/catalogo.js"></script>
+    <!-- index JS-->
+    <script src="js/index.js"></script>
 </body>
 
 </html>
