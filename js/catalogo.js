@@ -121,7 +121,7 @@ function addToCart(index) {
   const qtyInput = document.getElementById(`qty-${index}`);
   const quantity = parseInt(qtyInput.value);
 
-  if (!checkbox.checked || quantity < 0) {
+  if (!checkbox.checked || quantity <= 0 || isNaN(quantity)) {
     alert('Selecciona una cantidad válida y marca el producto antes de agregar.');
     return;
   }
