@@ -1,5 +1,5 @@
 const catalogo = [
-    {
+    {   
         title: "Gabinete Crystal Black RGB E-ATX Vidrio Templado USB 3.0",
         brand: "Crystal Black",
         code: "001",
@@ -50,28 +50,70 @@ const cartItems = document.getElementById('cart-items');
 const cartSummary = document.getElementById('cart-summary'); // nombre corregido
 
 // ==================== Renderizar productos ====================
-catalogo.forEach((product, index) => {
-    const productCard = document.createElement('div');
-    productCard.className = 'col';
-    productCard.innerHTML = `
-    <div class="card h-100">
-      <img src="${product.image}" class="card-img-top" alt="${product.title}">
-      <div class="card-body">
-        <h5 class="card-title">${product.title}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">${product.brand}</h6>
-        <h6 class="card-subtitle mb-2 text-muted">Código: #${product.code}</h6>
-        <p class="card-text">${product.description}</p>
-      </div>
-      <div class="card-footer bg-transparent border-0">
-        <h4 class="card-subtitle mb-2">Precio: $${product.price}</h4>
-        <input type="number" id="qty-${index}" class="form-control mb-2" placeholder="Cantidad" min="1">
-        <input type="checkbox" class="btn-check" id="chk-${index}" autocomplete="off">
-        <label class="btn btn-outline-primary mb-4" for="chk-${index}">Agregar al carrito</label>
-        <button class="btn btn-primary w-100 bg-1" onclick="addToCart(${index})">Agregar</button>
-      </div>
-    </div>`;
-    productList.appendChild(productCard);
-});
+function renderProducts(catalogo){
+  catalogo.forEach((product, index) => {
+      const productCard = document.createElement('div');
+      productCard.className = 'col';
+      productCard.innerHTML = `
+      <div class="card h-100">
+        <img src="${product.image}" class="card-img-top" alt="${product.title}">
+        <div class="card-body">
+          <h5 class="card-title">${product.title}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">${product.brand}</h6>
+          <h6 class="card-subtitle mb-2 text-muted">Código: #${product.code}</h6>
+          <p class="card-text">${product.description}</p>
+        </div>
+        <div class="card-footer bg-transparent border-0">
+          <h4 class="card-subtitle mb-2">Precio: $${product.price}</h4>
+          <input type="number" id="qty-${index}" class="form-control mb-2" placeholder="Cantidad" min="1">
+          <input type="checkbox" class="btn-check" id="chk-${index}" autocomplete="off">
+          <label class="btn btn-outline-primary mb-4" for="chk-${index}">Agregar al carrito</label>
+          <button class="btn btn-primary w-100 bg-1" onclick="addToCart(${index})">Agregar</button>
+        </div>
+      </div>`;
+      productList.appendChild(productCard);
+  })
+};
+
+//Renderiza y filtra
+renderProducts(catalogo);
+filtroProductos();
+
+//Filtra productos
+function filtroProductos() {
+  const input = document.getElementById('filtroProductos');
+  if (!input) return;
+
+  const aplicarFiltro = () => {
+    const termino = input.value.trim().toLowerCase();
+
+    // Si está vacío, mostrar todo el catálogo
+    if (termino === '') {
+      productList.innerHTML = '';
+      renderProducts(catalogo);
+      return;
+    }
+
+    const productosFiltrados = catalogo.filter(producto => {
+      return (
+        producto.title.toLowerCase().includes(termino) ||
+        producto.brand.toLowerCase().includes(termino) ||
+        producto.code.toLowerCase().includes(termino) ||
+        producto.description.toLowerCase().includes(termino)
+      );
+    });
+
+    // Limpiar contenedor y renderizar resultados
+    productList.innerHTML = '';
+    if (productosFiltrados.length > 0) {
+      renderProducts(productosFiltrados);
+    } else {
+      productList.innerHTML = '<div class="col text-center text-muted py-4">No se encontraron productos.</div>';
+    }
+  };
+  // Filtrado en vivo
+  input.addEventListener('input', aplicarFiltro);
+}
 
 // ==================== Función: Agregar al carrito ====================
 function addToCart(index) {
@@ -79,7 +121,7 @@ function addToCart(index) {
     const qtyInput = document.getElementById(`qty-${index}`);
     const quantity = parseInt(qtyInput.value);
 
-    if (!checkbox.checked || quantity <= 0) {
+    if (!checkbox.checked || quantity < 0) {
         alert('Selecciona una cantidad válida y marca el producto antes de agregar.');
         return;
     }
@@ -106,7 +148,13 @@ function removeFromCart(index) {
 
 // ==================== Función: Renderizar carrito ====================
 function renderCart() {
-    let tableHtml = `
+  if (cart.length === 0) {
+    cartItems.innerHTML = '<p>El carrito está vacío.</p>';
+    cartSummary.innerHTML = '';
+    return;
+  }
+
+  let tableHtml = `
     <table class="table table-striped">
       <thead>
         <tr>
@@ -115,8 +163,8 @@ function renderCart() {
       </thead>
       <tbody>`;
 
-    cart.forEach((product, index) => {
-        tableHtml += `
+  cart.forEach((product, index) => {
+    tableHtml += `
       <tr>
         <td>${product.title}</td>
         <td>${product.quantity}</td>
@@ -124,12 +172,32 @@ function renderCart() {
         <td>${(product.price * product.quantity).toLocaleString()}</td>
         <td><button class="btn btn-danger" onclick="removeFromCart(${index})">Eliminar</button></td>
       </tr>`;
-    });
+  });
 
-    tableHtml += '</tbody></table>';
-    cartItems.innerHTML = tableHtml;
+  tableHtml += '</tbody></table>';
 
-    calculateTotals();
+  // Botón vaciar carrito
+  tableHtml += `
+    <div class="text-end mt-3">
+      <button class="btn btn-danger" onclick="clearCart()">Vaciar carrito</button>
+    </div>
+  `;
+
+  cartItems.innerHTML = tableHtml;
+  calculateTotals();
+}
+
+// ==================== Función: Vaciar carrito ====================
+function clearCart() {
+  if (cart.length === 0) {
+    alert("El carrito ya está vacío.");
+    return;
+  }
+
+  if (confirm("¿Seguro que quieres vaciar el carrito?")) {
+    cart.length = 0; // vacía el array
+    renderCart();    // actualiza tabla y resumen
+  }
 }
 
 // ==================== Función: Calcular Totales ====================

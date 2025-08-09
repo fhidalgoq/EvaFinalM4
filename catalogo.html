@@ -31,20 +31,29 @@
             </div>
         </div>
     </nav>
-    <!-- Contenido-->
-    <!--catalogo-->
-    <div class="container-fluid text-center catalogo my-5">
+    <!-- Buscador-->
+    <div class="container mt-4">
+        <h2 class="text-center">Búsqueda de Productos</h2>
+        <input type="text" name="" id="filtroProductos" class="form-control" placeholder="Buscar productos...">
+        <!--catalogo-->
+        <div class="container-fluid text-center catalogo my-5">
         <div class="row row-cols-md-3 row-cols-lg-3 g-3" id="product-list">
-            <!-- Aquí se generarán los productos del catálogo -->
+        <!-- Aquí se generarán los productos del catálogo -->
         </div>
     </div>
+    </div>
+
     <!--fin catalogo-->
     <!-- tabla carrito-->
     <div class="container" id="cart-items">
         <!-- Tabla del carrito -->
     </div>
     <div class="container" id="cart-summary">
-        <!-- Resumen del carrito -->
+        <!-- Vaciar carrito -->
+    <div class="container mt-3">
+      <button class="btn btn-danger" onclick="clearCart()">Vaciar carrito</button>
+    </div>
+
     </div>
     <!-- Formulario de despacho -->
     <div class="container my-5">
