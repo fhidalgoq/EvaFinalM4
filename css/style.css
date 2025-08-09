@@ -45,3 +45,7 @@
 .modal-content button:hover {
     background: #45a049;
 }
+
+.oculto {
+    display: none;
+}
