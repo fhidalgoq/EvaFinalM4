@@ -1,264 +1,321 @@
-const catalogo = [
-  {
-    title: "Gabinete Crystal Black RGB E-ATX Vidrio Templado USB 3.0",
-    brand: "Crystal Black",
-    code: "001",
-    description: "Diseño elegante con panel lateral de vidrio templado, excelente flujo de aire y espacio optimizado para configuraciones de alto rendimiento.",
-    image: "img/001.png",
-    price: 49990
-  }, {
-    title: "Audífonos Dual Blade 7.1 USB RGB",
-    brand: "Dual Blade",
-    code: "002",
-    description: "Sonido envolvente, micrófono con cancelación de ruido y diseño ergonómico para largas sesiones de juego con máxima inmersión.",
-    image: "img/002.png",
-    price: 29990
-  }, {
-    title: "Teclado Gamer Kronos",
-    brand: "Kronos Gaming",
-    code: "003",
-    description: "Formato compacto sin pad numérico, retroiluminación RGB y switches mecánicos para precisión y velocidad en cada partida.",
-    image: "img/003.png",
-    price: 19990
-  }, {
-    title: "Silla Gamer Argo 180°",
-    brand: "Argo",
-    code: "004",
-    description: "Elección perfecta para gamers, streamers y profesionales que buscan ergonomía y estilo. Con materiales premium y ajustes avanzados, esta silla te brindará soporte durante largas horas de uso.",
-    image: "img/004.webp",
-    price: 129990
-  }, {
-    title: "Escritorio Mesa Gamer Griffin",
-    brand: "Griffin",
-    code: "005",
-    description: "Está diseñado para gamers y profesionales que exigen resistencia, espacio inteligente y un estilo agresivo. Con un tablero de 120cm x 60cm y 75cm de altura, ofrece el equilibrio perfecto entre amplitud y ergonomía.",
-    image: "img/005.webp",
-    price: 69990
-  }, {
-    title: "Micrófono Profesional Mistral",
-    brand: "Mistral",
-    code: "006",
-    description: "Captura de voz nítida con condensador de alta sensibilidad, iluminación RGB personalizable y diseño ideal para streaming, podcasting o gaming.",
-    image: "img/006.jpg",
-    price: 39990
-  }];
+// ==================== Clase Producto ES5 ====================
+function Producto(data) {
+    this.title = data.title;
+    this.brand = data.brand;
+    this.code = data.code;
+    this.description = data.description;
+    this.image = data.image;
+    this.price = data.price;
+    this.stock = data.stock;
+    this.quantity = data.quantity || 0;
+}
 
-// ==================== Variables globales ====================
-const cart = [];
-const productList = document.getElementById('product-list');
-const cartItems = document.getElementById('cart-items');
-const cartSummary = document.getElementById('cart-summary'); // nombre corregido
-
-// ==================== Renderizar productos ====================
-function renderProducts(catalogo) {
-  catalogo.forEach((product, index) => {
-    const productCard = document.createElement('div');
-    productCard.className = 'col';
-    productCard.innerHTML = `
-      <div class="card h-100">
-        <img src="${product.image}" class="card-img-top" alt="${product.title}">
-        <div class="card-body">
-          <h5 class="card-title">${product.title}</h5>
-          <h6 class="card-subtitle mb-2 text-muted">${product.brand}</h6>
-          <h6 class="card-subtitle mb-2 text-muted">Código: #${product.code}</h6>
-          <p class="card-text">${product.description}</p>
-        </div>
-        <div class="card-footer bg-transparent border-0">
-          <h4 class="card-subtitle mb-2">Precio: $${product.price}</h4>
-          <input type="number" id="qty-${index}" class="form-control mb-2" placeholder="Cantidad" min="1">
-          <input type="checkbox" class="btn-check" id="chk-${index}" autocomplete="off">
-          <label class="btn btn-outline-primary mb-4" for="chk-${index}">Agregar al carrito</label>
-          <button class="btn btn-primary w-100 bg-1" onclick="addToCart(${index})">Agregar</button>
-        </div>
-      </div>`;
-    productList.appendChild(productCard);
-  })
+Producto.prototype.stockCritico = function () {
+    return this.stock < 5 && this.stock > 1;
 };
 
-//Renderiza y filtra
-renderProducts(catalogo);
-filtroProductos();
+Producto.prototype.ultimaUnidad = function () {
+    return this.stock === 1;
+};
 
-//Filtra productos
-function filtroProductos() {
-  const input = document.getElementById('filtroProductos');
-  if (!input) return;
+Producto.prototype.estaAgotado = function () {
+    return this.stock === 0;
+};
 
-  const aplicarFiltro = () => {
-    const termino = input.value.trim().toLowerCase();
+Producto.prototype.getTotal = function () {
+    return this.price * this.quantity;
+};
 
-    // Si está vacío, mostrar todo el catálogo
-    if (termino === '') {
-      productList.innerHTML = '';
-      renderProducts(catalogo);
-      return;
+Producto.prototype.copiar = function () {
+    var copia = new Producto(this);
+    copia.quantity = this.quantity;
+    return copia;
+};
+
+// ==================== Variables globales ====================
+var catalogo = [];
+var cart = [];
+var productList = document.getElementById('product-list');
+var cartItems = document.getElementById('cart-items');
+var cartSummary = document.getElementById('cart-summary');
+
+// ==================== Cargar productos desde JSON ====================
+function cargarCatalogo(callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'productos.json', true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var arr = JSON.parse(xhr.responseText);
+                    catalogo = [];
+                    for (var i = 0; i < arr.length; i++) {
+                        catalogo.push(new Producto(arr[i]));
+                    }
+                    callback();
+                } catch (e) {
+                    alert('Error al cargar productos. Error: ' + e.message);
+                }
+            }
+        };
     }
+    xhr.send();
+}
 
-    const productosFiltrados = catalogo.filter(producto => {
-      return (
-        producto.title.toLowerCase().includes(termino) ||
-        producto.brand.toLowerCase().includes(termino) ||
-        producto.code.toLowerCase().includes(termino) ||
-        producto.description.toLowerCase().includes(termino)
-      );
-    });
-
-    // Limpiar contenedor y renderizar resultados
+// ==================== Renderizar productos ====================
+function renderProducts(lista) {
     productList.innerHTML = '';
-    if (productosFiltrados.length > 0) {
-      renderProducts(productosFiltrados);
-    } else {
-      productList.innerHTML = '<div class="col text-center text-muted py-4">No se encontraron productos.</div>';
+    for (var i = 0; i < lista.length; i++) {
+        var product = lista[i];
+        var agotado = product.estaAgotado();
+        var stockCritico = product.stockCritico();
+        var ultimaUnidad = product.ultimaUnidad();
+        var productCard = document.createElement('div');
+        productCard.className = 'col';
+        productCard.innerHTML =
+            '<div class="card h-100">' +
+            '<img src="' + product.image + '" class="card-img-top" alt="' + product.title + '">' +
+            '<div class="card-body d-flex flex-column">' +
+            '<h5 class="card-title">' + product.title + '</h5>' +
+            '<h6 class="card-subtitle mb-2 text-muted">' + product.brand + '</h6>' +
+            '<h6 class="card-subtitle mb-2 text-muted">Código: #' + product.code + '</h6>' +
+            '<p class="card-text">' + product.description + '</p>' +
+            (agotado ? '<p class="text-danger mt-auto"><strong>Agotado</strong></p>' : '') +
+            (ultimaUnidad ? '<p class="card-text text-warning mt-auto"><strong> ¡Solo una unidad restante!</strong></p>' : '') +
+            (stockCritico ? '<p class="card-text text-info mt-auto"><strong> ¡Últimas Unidades!' : '') + '</strong></p>' +
+            '<p class="card-text mt-auto">Stock: ' + product.stock + '</p>' +
+            '</div>' +
+            '<div class="card-footer bg-transparent border-0">' +
+            '<h4 class="card-subtitle mb-2">Precio: $' + product.price + '</h4>' +
+            '<input type="number" id="qty-' + i + '" class="form-control mb-2" placeholder="Cantidad" min="1" max="' + product.stock + '"' + (agotado ? ' disabled' : '') + '>' +
+            '<input type="checkbox" class="btn-check" id="chk-' + i + '" autocomplete="off"' + (agotado ? ' disabled' : '') + '>' +
+            '<label class="btn btn-outline-primary mb-4" for="chk-' + i + '">' + (agotado ? 'Sin stock' : 'Agregar al carrito') + '</label>' +
+            '<button class="btn btn-primary w-100 bg-1" onclick="addToCart(' + i + ')"' + (agotado ? ' disabled' : '') + '>Agregar</button>' +
+            '</div>' +
+            '</div>';
+        productList.appendChild(productCard);
     }
-  };
-  // Filtrado en vivo
-  input.addEventListener('input', aplicarFiltro);
 }
 
-// ==================== Función: Agregar al carrito ====================
+// ==================== Filtrar productos ====================
+function filtroProductos() {
+    var input = document.getElementById('filtroProductos');
+    if (!input) return;
+
+    var aplicarFiltro = function () {
+        var termino = input.value.trim().toLowerCase();
+
+        if (termino === '') {
+            renderProducts(catalogo);
+            return;
+        }
+
+        var productosFiltrados = [];
+        for (var i = 0; i < catalogo.length; i++) {
+            var producto = catalogo[i];
+            if (
+                producto.title.toLowerCase().indexOf(termino) !== -1 ||
+                producto.brand.toLowerCase().indexOf(termino) !== -1 ||
+                producto.code.toLowerCase().indexOf(termino) !== -1 ||
+                producto.description.toLowerCase().indexOf(termino) !== -1
+            ) {
+                productosFiltrados.push(producto);
+            }
+        }
+
+        productList.innerHTML = '';
+        if (productosFiltrados.length > 0) {
+            renderProducts(productosFiltrados);
+        } else {
+            productList.innerHTML = '<div class="col text-center text-muted py-4">No se encontraron productos.</div>';
+        }
+    };
+    input.addEventListener('input', aplicarFiltro);
+}
+
+// ==================== Agregar al carrito ====================
 function addToCart(index) {
-  const checkbox = document.getElementById(`chk-${index}`);
-  const qtyInput = document.getElementById(`qty-${index}`);
-  const quantity = parseInt(qtyInput.value);
+    var product = catalogo[index];
+    var checkbox = document.getElementById('chk-' + index);
+    var qtyInput = document.getElementById('qty-' + index);
+    var quantity = parseInt(qtyInput.value, 10);
 
-  if (!checkbox.checked || quantity <= 0 || isNaN(quantity)) {
-    alert('Selecciona una cantidad válida y marca el producto antes de agregar.');
-    return;
-  }
+    if (!checkbox.checked || isNaN(quantity) || quantity <= 0) {
+        alert('Selecciona una cantidad válida y marca el producto antes de agregar.');
+        return;
+    }
+    if (quantity > product.stock) {
+        alert('No hay suficiente stock disponible.');
+        return;
+    }
 
-  const product = catalogo[index];
-  const existingProduct = cart.find(item => item.code === product.code);
+    var existingProduct = null;
+    for (var i = 0; i < cart.length; i++) {
+        if (cart[i].code === product.code) {
+            existingProduct = cart[i];
+            break;
+        }
+    }
 
-  if (existingProduct) {
-    existingProduct.quantity += quantity;
-  } else {
-    cart.push({ ...product, quantity });
-  }
+    if (existingProduct) {
+        if (existingProduct.quantity + quantity > product.stock) {
+            alert('No puedes agregar más de lo disponible en stock.');
+            return;
+        }
+        existingProduct.quantity += quantity;
+    } else {
+        var prodCopy = product.copiar();
+        prodCopy.quantity = quantity;
+        cart.push(prodCopy);
+    }
 
-  qtyInput.value = '';
-  checkbox.checked = false;
-  renderCart();
+    qtyInput.value = '';
+    checkbox.checked = false;
+    renderCart();
 }
 
-// ==================== Función: Eliminar del carrito ====================
+// ==================== Eliminar del carrito ====================
 function removeFromCart(index) {
-  cart.splice(index, 1);
-  renderCart();
+    cart.splice(index, 1);
+    renderCart();
 }
 
-// ==================== Función: Renderizar carrito ====================
+// ==================== Renderizar carrito ====================
 function renderCart() {
-  if (cart.length === 0) {
-    cartItems.innerHTML = '<p>El carrito está vacío.</p>';
-    cartSummary.innerHTML = '';
-    return;
-  }
+    if (cart.length === 0) {
+        cartItems.innerHTML = '<p>El carrito está vacío.</p>';
+        cartSummary.innerHTML = '';
+        return;
+    }
 
-  let tableHtml = `
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Nombre</th><th>Cantidad</th><th>Valor</th><th>Total</th><th>Acción</th>
-        </tr>
-      </thead>
-      <tbody>`;
+    var tableHtml =
+        '<table class="table table-striped">' +
+        '<thead>' +
+        '<tr>' +
+        '<th>Nombre</th><th>Cantidad</th><th>Valor</th><th>Total</th><th>Acción</th>' +
+        '</tr>' +
+        '</thead>' +
+        '<tbody>';
 
-  cart.forEach((product, index) => {
-    tableHtml += `
-      <tr>
-        <td>${product.title}</td>
-        <td>${product.quantity}</td>
-        <td>${product.price}</td>
-        <td>${(product.price * product.quantity).toLocaleString()}</td>
-        <td><button class="btn btn-danger" onclick="removeFromCart(${index})">Eliminar</button></td>
-      </tr>`;
-  });
+    for (var i = 0; i < cart.length; i++) {
+        var product = cart[i];
+        tableHtml +=
+            '<tr>' +
+            '<td>' + product.title + '</td>' +
+            '<td>' + product.quantity + '</td>' +
+            '<td>' + product.price + '</td>' +
+            '<td>' + product.getTotal().toLocaleString() + '</td>' +
+            '<td><button class="btn btn-danger" onclick="removeFromCart(' + i + ')">Eliminar</button></td>' +
+            '</tr>';
+    }
 
-  tableHtml += '</tbody></table>';
+    tableHtml += '</tbody></table>';
 
-  // Botón vaciar carrito
-  tableHtml += `
-    <div class="text-end mt-3">
-      <button class="btn btn-danger" onclick="clearCart()">Vaciar carrito</button>
-    </div>
-  `;
+    tableHtml +=
+        '<div class="text-end mt-3">' +
+        '<button class="btn btn-danger" onclick="clearCart()">Vaciar carrito</button>' +
+        '</div>';
 
-  cartItems.innerHTML = tableHtml;
-  calculateTotals();
+    cartItems.innerHTML = tableHtml;
+    calculateTotals();
 }
 
-// ==================== Función: Vaciar carrito ====================
+// ==================== Vaciar carrito ====================
 function clearCart() {
-  if (cart.length === 0) {
-    alert("El carrito ya está vacío.");
-    return;
-  }
+    if (cart.length === 0) {
+        alert("El carrito ya está vacío.");
+        return;
+    }
 
-  if (confirm("¿Seguro que quieres vaciar el carrito?")) {
-    cart.length = 0; // vacía el array
-    renderCart();    // actualiza tabla y resumen
-  }
+    if (confirm("¿Seguro que quieres vaciar el carrito?")) {
+        cart.length = 0;
+        renderCart();
+    }
 }
 
-// ==================== Función: Calcular Totales ====================
+// ==================== Calcular Totales ====================
 function calculateTotals() {
-  const neto = cart.reduce((total, product) => total + (product.price * product.quantity), 0);
-  const iva = neto * 0.19;
-  let total = neto + iva;
-  const despacho = total > 100000 ? total * 0.05 : 0;
-  total += despacho;
+    var neto = 0;
+    for (var i = 0; i < cart.length; i++) {
+        neto += cart[i].getTotal();
+    }
+    var iva = neto * 0.19;
+    var total = neto + iva;
+    var despacho = total > 100000 ? total * 0.05 : 0;
+    total += despacho;
 
-  cartSummary.innerHTML = `
-    <p><strong>Valor neto:</strong> ${neto.toLocaleString()}.-</p>
-    <p><strong>IVA 19%:</strong> ${iva.toLocaleString()}.-</p>
-    ${despacho > 0 ? `<p><strong>Despacho:</strong> ${despacho.toLocaleString()}.-</p>` : ''}
-    <p><strong>Valor Total:</strong> ${total.toLocaleString()}.-</p>`;
+    cartSummary.innerHTML =
+        '<p><strong>Valor neto:</strong> ' + neto.toLocaleString() + '.-</p>' +
+        '<p><strong>IVA 19%:</strong> ' + iva.toLocaleString() + '.-</p>' +
+        (despacho > 0 ? '<p><strong>Despacho:</strong> ' + despacho.toLocaleString() + '.-</p>' : '') +
+        '<p><strong>Valor Total:</strong> ' + total.toLocaleString() + '.-</p>';
 }
 
 // ==================== Formulario: Generar boleta ====================
-document.getElementById('formCompra').addEventListener('submit', function (e) {
-  e.preventDefault();
-  if (cart.length === 0) {
-    alert('Tu carrito está vacío. Agrega productos antes de confirmar.');
-    return;
-  }
+var formCompra = document.getElementById('formCompra');
+if (formCompra) {
+    formCompra.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (cart.length === 0) {
+            alert('Tu carrito está vacío. Agrega productos antes de confirmar.');
+            return;
+        }
 
-  let htmlDetalle = '<h4>Detalle de Productos</h4><ul class="list-group">';
-  let totalNeto = 0;
+        // === Reducir stock de productos comprados ===
+        for (var i = 0; i < cart.length; i++) {
+            var item = cart[i];
+            for (var j = 0; j < catalogo.length; j++) {
+                if (catalogo[j].code === item.code) {
+                    catalogo[j].stock -= item.quantity;
+                    if (catalogo[j].stock < 0) catalogo[j].stock = 0;
+                    break;
+                }
+            }
+        }
+        renderProducts(catalogo);
 
-  cart.forEach(item => {
-    const totalItem = item.price * item.quantity;
-    totalNeto += totalItem;
-    htmlDetalle += `<li class="list-group-item">${item.code} - ${item.title}: $${item.price} x ${item.quantity} = $${totalItem}</li>`;
-  });
+        var htmlDetalle = '<h4>Detalle de Productos</h4><ul class="list-group">';
+        var totalNeto = 0;
 
-  htmlDetalle += '</ul>';
-  document.getElementById('detalleProductos').innerHTML = htmlDetalle;
+        for (var i = 0; i < cart.length; i++) {
+            var item = cart[i];
+            var totalItem = item.getTotal();
+            totalNeto += totalItem;
+            htmlDetalle += '<li class="list-group-item">' + item.code + ' - ' + item.title + ': $' + item.price + ' x ' + item.quantity + ' = $' + totalItem + '</li>';
+        }
 
-  const impuesto = totalNeto * 0.19;
-  const totalBruto = totalNeto + impuesto;
+        htmlDetalle += '</ul>';
+        document.getElementById('detalleProductos').innerHTML = htmlDetalle;
 
-  document.getElementById('resumenCompra').innerHTML = `
-    <h4>Resumen</h4>
-    <p><strong>Monto Neto:</strong> $${totalNeto.toLocaleString()}</p>
-    <p><strong>IVA (19%):</strong> $${impuesto.toLocaleString()}</p>
-    <p><strong>Total Bruto:</strong> $${totalBruto.toLocaleString()}</p>
-  `;
+        var impuesto = totalNeto * 0.19;
+        var totalBruto = totalNeto + impuesto;
 
-  const nombre = document.getElementById('nombre').value;
-  const direccion = document.getElementById('direccion').value;
-  const comuna = document.getElementById('comuna').value;
-  const region = document.getElementById('region').value;
-  const correo = document.getElementById('correo').value;
+        document.getElementById('resumenCompra').innerHTML =
+            '<h4>Resumen</h4>' +
+            '<p><strong>Monto Neto:</strong> $' + totalNeto.toLocaleString() + '</p>' +
+            '<p><strong>IVA (19%):</strong> $' + impuesto.toLocaleString() + '</p>' +
+            '<p><strong>Total Bruto:</strong> $' + totalBruto.toLocaleString() + '</p>';
 
-  document.getElementById('infoDespacho').innerHTML = `
-    <h4>Datos del Despacho</h4>
-    <p><strong>Nombre:</strong> ${nombre}</p>
-    <p><strong>Dirección:</strong> ${direccion}, ${comuna}, ${region}</p>
-    <p><strong>Email:</strong> ${correo}</p>
-  `;
+        var nombre = document.getElementById('nombre').value;
+        var direccion = document.getElementById('direccion').value;
+        var comuna = document.getElementById('comuna').value;
+        var region = document.getElementById('region').value;
+        var correo = document.getElementById('correo').value;
 
-  document.getElementById('boleta').style.display = 'block';
+        document.getElementById('infoDespacho').innerHTML =
+            '<h4>Datos del Despacho</h4>' +
+            '<p><strong>Nombre:</strong> ' + nombre + '</p>' +
+            '<p><strong>Dirección:</strong> ' + direccion + ', ' + comuna + ', ' + region + '</p>' +
+            '<p><strong>Email:</strong> ' + correo + '</p>';
 
-  alert('Compra confirmada. Se enviará una copia de la boleta al correo.');
+        document.getElementById('boleta').style.display = 'block';
+
+        alert('Compra confirmada. Se enviará una copia de la boleta al correo.');
+    });
+}
+
+// ==================== Inicialización ====================
+cargarCatalogo(function () {
+    renderProducts(catalogo);
+    filtroProductos();
 });
